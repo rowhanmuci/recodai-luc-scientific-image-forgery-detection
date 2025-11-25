@@ -39,14 +39,49 @@ data/
 
 ## 📤 提交格式
 
+這是一個 **Code Competition**，需要在 Kaggle Notebook 中提交。
+
 ```csv
 case_id,annotation
-45,authentic
-123,forged
-...
+1,authentic
+2,"[123 4 200 10]"
 ```
 
-## 🚀 快速開始
+| 預測結果 | annotation 格式 |
+|----------|-----------------|
+| 真實圖像 | `authentic` |
+| 偽造圖像 | RLE 編碼的 mask，如 `"[start1 length1 start2 length2 ...]"` |
+
+**重要**：這是一個 **分類 + 分割** 的組合任務！
+- 先判斷圖像是否為偽造
+- 如果是偽造，還需要提供偽造區域的 RLE 編碼 mask
+
+## 🚀 完整流程
+
+### 方案 A：分類 + 分割（推薦，更高分數）
+
+```bash
+# 1. 訓練分類器
+python train_classifier.py --model efficientnet_b3 --image_size 384 --batch_size 8 --epochs 50 --mixup
+
+# 2. 訓練分割器
+python train.py --model unet --encoder efficientnet-b3 --image_size 384 --epochs 50
+
+# 3. 上傳模型到 Kaggle Dataset，然後在 Notebook 中運行 kaggle_submission.py
+```
+
+### 方案 B：僅分割（簡單方案）
+
+```bash
+# 1. 訓練分割器（預測偽造區域，如果沒有偽造區域則為 authentic）
+python train.py --model unet --encoder efficientnet-b3 --image_size 512 --epochs 50
+
+# 2. 上傳模型到 Kaggle，使用分割結果生成提交
+```
+
+---
+
+## 🏃 快速開始（本地訓練）
 
 ### 1. 環境設置
 
@@ -100,17 +135,23 @@ python inference_classifier.py --checkpoint outputs/best_classifier.pth --tta
 
 ## 📂 檔案說明
 
-### 核心檔案（分類任務）
+### 核心檔案
 
 | 檔案 | 說明 |
 |------|------|
 | `eda.py` | 資料探索與視覺化 |
 | `check_masks.py` | 檢查 Mask 檔案格式與內容 |
+| `kaggle_submission.py` | **Kaggle Notebook 提交腳本** ⭐ |
+
+### 分類任務
+
+| 檔案 | 說明 |
+|------|------|
 | `dataset_classification.py` | 分類任務 Dataset |
 | `train_classifier.py` | 分類模型訓練腳本 |
-| `inference_classifier.py` | 分類推理與提交生成 |
+| `inference_classifier.py` | 分類推理（本地測試用） |
 
-### 輔助檔案（分割任務，選用）
+### 分割任務
 
 | 檔案 | 說明 |
 |------|------|
@@ -118,6 +159,11 @@ python inference_classifier.py --checkpoint outputs/best_classifier.pth --tta
 | `train.py` | 分割模型訓練腳本 |
 | `inference.py` | 分割推理腳本 |
 | `losses.py` | 損失函數 (Dice, Focal, Tversky 等) |
+
+### 輔助檔案
+
+| 檔案 | 說明 |
+|------|------|
 | `utils.py` | 工具函數 |
 | `advanced_config.py` | 進階訓練配置與技巧 |
 
@@ -209,6 +255,33 @@ python train_classifier.py --model efficientnet_b3 --mixup --label_smoothing 0.2
 - [timm 模型列表](https://huggingface.co/docs/timm/index)
 - [Albumentations 文檔](https://albumentations.ai/docs/)
 - [Copy-Move Forgery Detection 論文](https://arxiv.org/abs/2109.08503)
+
+## 🎯 Kaggle 提交步驟
+
+### Step 1: 本地訓練模型
+```bash
+# 訓練分類器
+python train_classifier.py --model efficientnet_b3 --epochs 50 --mixup
+
+# 訓練分割器
+python train.py --model unet --encoder efficientnet-b3 --epochs 50
+```
+
+### Step 2: 上傳模型到 Kaggle
+1. 在 Kaggle 創建一個新的 Dataset
+2. 上傳 `outputs/best_classifier.pth` 和 `outputs/best_model.pth`
+
+### Step 3: 創建 Kaggle Notebook
+1. 新建 Notebook，加入你的模型 Dataset
+2. 複製 `kaggle_submission.py` 的內容
+3. 修改模型路徑指向你上傳的 Dataset
+4. 運行並提交
+
+### 注意事項
+- CPU Notebook: ≤ 4 小時
+- GPU Notebook: ≤ 4 小時
+- **必須關閉網路存取**
+- 輸出檔案必須命名為 `submission.csv`
 
 ## 📝 License
 
