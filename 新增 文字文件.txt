@@ -1,0 +1,19 @@
+    # === 閾值設定（關鍵！）===
+    MASK_HIGH_THRESHOLD = 0.5   # Mask 高閾值
+    MASK_LOW_THRESHOLD = 0.3    # Mask 低閾值（用於 hysteresis）
+    MIN_OBJECT_SIZE = 100       # 最小連通區域大小（像素）
+    MIN_FORGERY_RATIO = 0.1   # 最小偽造區域比例（低於此視為 authentic）
+    MAX_MEAN_PROB = 0.3         # 如果平均機率低於此，視為 authentic
+
+Public Score
+0.293
+
+    # === 閾值設定（關鍵！）===
+    MASK_HIGH_THRESHOLD = 0.5   # Mask 高閾值
+    MASK_LOW_THRESHOLD = 0.3    # Mask 低閾值（用於 hysteresis）
+    MIN_OBJECT_SIZE = 100       # 最小連通區域大小（像素）
+    MIN_FORGERY_RATIO = 0.05   # 最小偽造區域比例（低於此視為 authentic）
+    MAX_MEAN_PROB = 0.3         # 如果平均機率低於此，視為 authentic
+
+Public Score
+0.281
